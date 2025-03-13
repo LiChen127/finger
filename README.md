@@ -1,4 +1,4 @@
-# A simple interpreter, named "finger" for the finger language, is implemented in Go language.
+# A simple interpreter, named "finger"
 
 ## Background
 
