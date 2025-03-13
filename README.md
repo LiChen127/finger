@@ -2,14 +2,21 @@
 
 ## Background
 
-This is a simple interpreter for the finger language, which is a simple language for describing the structure of a program. The idea is from "Writing an Interpreter in Go" by Thorsten Ball.
+This is a simple interpreter, I called it "finger", which is a simple language for describing the structure of a program.
+The idea is from "Writing an Interpreter in Go" by Thorsten Ball.
 
-## Target
+## Current work
 
-Based on the book, I want to implement that interpreter liked the interpreter of JavaScript by JavaScript Enigne.
+At current time, this project has been implemented as a simple language, which can be used to describe the structure of a program.
 
-Maybe I will do it in the future.
+## Future work
 
-## GC
+I will add more features to the language, make it more powerful, implement it liked a real language, not a "project from learning".
 
-Currently, I don't implement GC. Just use the GoLang's GC.
+### Target
+
+Maybe like JavaScript
+
+1. make it become the OOP
+2. make it become the functional programming
+3. I/O (file, net, database) anyway
