@@ -1,1 +1,1 @@
-# Go 构建解释器
+# finger解释器 by go
