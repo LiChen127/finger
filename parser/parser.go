@@ -22,6 +22,7 @@ const (
 	PRODUCT // *
 	PREFIX // -X or !X
 	CALL // myFunction(X)
+	INDEX // array[index] 数组索引最高优先级
 )
 
 
@@ -35,6 +36,7 @@ var precedences = map[token.TokenType]int {
 	token.MINUS: SUM,
 	token.SLASH: PRODUCT,
 	token.ASTERISK: PRODUCT,	
+	token.LBRACKET: INDEX,
 }
 
 type Parser struct {
@@ -110,6 +112,10 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	// 字符串字面量解析器
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	// 数组字面量解析器
+	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
+	// 索引表达式解析器
+	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 
 	return p
 }
@@ -550,4 +556,48 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 */
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
+}
+
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	if p.peekTokenIs(end) {
+		p.nextToken()
+		return list
+	}
+
+	p.nextToken()
+	list = append(list, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		list = append(list, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(end) {
+		return nil
+	}
+
+	return list
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return exp
 }
