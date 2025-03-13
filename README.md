@@ -6,4 +6,6 @@ This is a simple interpreter for the finger language, which is a simple language
 
 ## Target
 
-Based on the book, I want to implement that interpreter liked the interpreter of JavaScript.Maybe I will do it in the future.
+Based on the book, I want to implement that interpreter liked the interpreter of JavaScript by JavaScript Enigne.
+
+Maybe I will do it in the future.
