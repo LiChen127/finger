@@ -82,6 +82,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	// 前缀表达式解析器
@@ -171,16 +172,14 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 /*
 	AST解析器
 */
-func (p *Parser) parseProgram() *ast.Program {
+func (p *Parser) ParseProgram() *ast.Program {
 	// 构造AST的根节点
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 	// 遍历输入的词法单元, 直到遇见EOF
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseStatement()
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
-		}
+		program.Statements = append(program.Statements, stmt)
 		p.nextToken()
 	}
 
