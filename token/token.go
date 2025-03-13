@@ -51,6 +51,9 @@ const (
 	// 数组相关
 	LBRACKET = "["
 	RBRACKET = "]"
+
+	// 哈希表相关
+	COLON = ":"
 )
 
 var keywords = map[string]TokenType{
