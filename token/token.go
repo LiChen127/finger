@@ -13,8 +13,9 @@ const (
 	EOF     = "EOF"     // 文件结束
 
 	// 标识符 + 字面量
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	STRING = "STRING"
 
 	// 运算符
 	ASSIGN   = "="

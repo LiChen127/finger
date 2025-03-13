@@ -108,6 +108,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	// 调用表达式解析器(其实是左括号)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
+	// 字符串字面量解析器
+	p.registerPrefix(token.STRING, p.parseStringLiteral)
 
 	return p
 }
@@ -543,4 +545,9 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	return args
 }
 
-
+/*
+	字符串字面量解析器
+*/
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
+}

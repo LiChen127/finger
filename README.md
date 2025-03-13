@@ -12,4 +12,4 @@ Maybe I will do it in the future.
 
 ## GC
 
-Cuurently, I don't implement GC. Just use the GoLang's GC.
+Currently, I don't implement GC. Just use the GoLang's GC.

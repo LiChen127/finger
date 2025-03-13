@@ -79,6 +79,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	}
 	
 	return nil
@@ -92,24 +94,24 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	return val
 }
 
-/*
-	执行一个语句列表，并返回最后一个语句的值
-	@param stmts 语句列表
-	@return 最后一个语句的值
-*/
-func evalStatements(stmts []ast.Statement, env *object.Environment) object.Object {
-	var result object.Object
+// /*
+// 	执行一个语句列表，并返回最后一个语句的值
+// 	@param stmts 语句列表
+// 	@return 最后一个语句的值
+// */
+// func evalStatements(stmts []ast.Statement, env *object.Environment) object.Object {
+// 	var result object.Object
 
-	for _, stmt := range stmts {
-		result = Eval(stmt, env)
-		// 如果返回值是返回值对象，则返回返回值的值
-		if returnValue, ok := result.(*object.ReturnValue); ok {
-			return returnValue.Value
-		}
-	}
+// 	for _, stmt := range stmts {
+// 		result = Eval(stmt, env)
+// 		// 如果返回值是返回值对象，则返回返回值的值
+// 		if returnValue, ok := result.(*object.ReturnValue); ok {
+// 			return returnValue.Value
+// 		}
+// 	}
 
-	return result
-}
+// 	return result
+// }
 
 /*
 	将go语言的布尔值转换为finger语言的布尔值
@@ -164,6 +166,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 			return nativeBoolToBooleanObject(left == right)
 		case operator == "!=":
 			return nativeBoolToBooleanObject(left != right)
+		case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+			return evalStringInfixExpression(operator, left, right)
 		default:
 			return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -310,4 +314,15 @@ func unwrapReturnValue(obj object.Object) object.Object {
 	}
 
 	return obj
+}
+
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+	if operator != "+" {
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+
+	return &object.String{Value: leftVal + rightVal}
 }
