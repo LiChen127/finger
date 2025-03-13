@@ -20,3 +20,5 @@ Maybe like JavaScript
 1. make it become the OOP
 2. make it become the functional programming
 3. I/O (file, net, database) anyway
+4. to improve the token analyzer's performance
+5. to improve the parser's performance, currently, it's based on recursive descent, I will learn more about how to make a high performance parser
