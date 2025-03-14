@@ -1,6 +1,8 @@
 package lexer
 
-import "finger/token"
+import (
+	"finger/token"
+)
 
 type Lexer struct {
 	input        string
@@ -63,10 +65,8 @@ func (l *Lexer) peekNextChar() byte {
 	检查当前正在查看的字符，根据字符返回相应的词法单元。
 */
 func (l *Lexer) NextToken() token.Token {
-	// 创建一个token
 	var tok token.Token
 
-	// 跳过空白字符
 	l.skipWhitespace()
 
 	switch l.ch {
@@ -127,13 +127,13 @@ func (l *Lexer) NextToken() token.Token {
 			// 处理 ++
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + "++"
+			literal := string(ch) + "+"
 			tok = token.Token{Type: token.INCREMENT, Literal: literal}
 		} else {
 			// 否则，返回+
 			tok = newToken(token.PLUS, l.ch)
 		}
-	// 处理 - | -= | --
+	// 处理 - | -= | -- | ->
 	case '-':
 		if l.peekChar() == '=' {
 			// 处理 -=
@@ -145,8 +145,14 @@ func (l *Lexer) NextToken() token.Token {
 			// 处理 --
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + "--"
+			literal := string(ch) + "-"
 			tok = token.Token{Type: token.DECREMENT, Literal: literal}
+		} else if l.peekChar() == '>' {
+			// 处理 ->
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + ">"
+			tok = token.Token{Type: token.ARROW, Literal: literal}
 		} else {
 			// 否则，返回-
 			tok = newToken(token.MINUS, l.ch)
@@ -169,7 +175,7 @@ func (l *Lexer) NextToken() token.Token {
 			// 处理 //
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + "//"
+			literal := string(ch) + "/"
 			tok = token.Token{Type: token.COMMENT, Literal: literal}
 		} else if l.peekChar() == '=' {
 			// 处理 /=
@@ -231,7 +237,7 @@ func (l *Lexer) NextToken() token.Token {
 			// 处理 <<
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + "<<"
+			literal := string(ch) + "<"
 			tok = token.Token{Type: token.BIT_SHIFT_LEFT, Literal: literal}
 		} else if l.peekChar() == '=' {
 			// 处理 <=
@@ -249,7 +255,7 @@ func (l *Lexer) NextToken() token.Token {
 			// 处理 >>
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + ">>"
+			literal := string(ch) + ">"
 			tok = token.Token{Type: token.BIT_SHIFT_RIGHT, Literal: literal}
 		} else if l.peekChar() == '=' {
 			// 处理 >=
@@ -261,24 +267,80 @@ func (l *Lexer) NextToken() token.Token {
 			// 否则，返回>
 			tok = newToken(token.GT, l.ch)
 		}
+	// 处理操作符
+	case ',':
+		tok = newToken(token.COMMA, l.ch)
+	case ';':
+		tok = newToken(token.SEMICOLON, l.ch)
+	case ':':
+		tok = newToken(token.COLON, l.ch)
+	// . | ...
+	case '.':
+		// tok = newToken(token.DOT, l.ch)
+		if l.peekChar() == '.' && l.peekNextChar() == '.' {
+			// 处理 ...
+			ch := l.ch
+			l.readChar()
+			l.readChar()
+			literal := string(ch) + ".."
+			tok = token.Token{Type: token.SPREAD, Literal: literal}
+		} else {
+			// 否则，返回.
+			tok = newToken(token.DOT, l.ch)
+		}
+	// ? | ?. | ??
+	case '?':
+		if l.peekChar() == '.' {
+			// 处理 ?.
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "."
+			tok = token.Token{Type: token.OPTIONAL_CHAIN, Literal: literal}
+		} else if l.peekChar() == '?' {
+			// 处理 ??
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "?"
+			tok = token.Token{Type: token.NULLISH, Literal: literal}
+		} else {
+			// 否则，返回?
+			tok = newToken(token.QUESTION, l.ch)
+		}
+	// 括号
+	case '(':
+		tok = newToken(token.LPAREN, l.ch)
+	case ')':
+		tok = newToken(token.RPAREN, l.ch)
+	case '{':
+		tok = newToken(token.LBRACE, l.ch)
+	case '}':
+		tok = newToken(token.RBRACE, l.ch)
+	case '[':
+		tok = newToken(token.LBRACKET, l.ch)
+	case ']':
+		tok = newToken(token.RBRACKET, l.ch)
+	// 处理字符串
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
+		return tok
 	default:
-		// 只要不是可识别的字符，就检查是否是标识符
 		if isLetter(l.ch) {
-			// 读入一个标识符
 			tok.Literal = l.readIdentifier()
-			// 根据标识符返回相应的词法单元
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
 		} else if isDigit(l.ch) {
-			// 读入一个数字
+			tok.Type = token.NUMBER
 			tok.Literal = l.readNumber()
-			// 返回数字
 			return tok
+		} else if l.ch == 0 {
+			tok.Type = token.EOF
+			tok.Literal = ""
 		} else {
-			// 否则，返回非法字符
 			tok = newToken(token.ILLEGAL, l.ch)
 		}
 	}
+
 	l.readChar()
 	return tok
 }
@@ -312,18 +374,6 @@ func isDigit(ch byte) bool {
 }
 
 /*
-	读入一个标识符并前移词法分析器的扫描位置，知道遇到非字母字符
-*/
-func (l *Lexer) readIdentifier() string {
-	position := l.position
-	for isLetter(l.ch) {
-		l.readChar()
-	}
-	return l.input[position:l.position]
-}
-
-
-/*
 	检查字符是否是字母, finger处理器可处理的语言格式
 */
 func isLetter(ch byte) bool {
@@ -351,4 +401,43 @@ func (l *Lexer) readString() string {
 	str := l.input[position:l.position]
 	l.readChar()
 	return str
+}
+
+/*
+	读取一个标识符
+*/
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+
+	if l.ch == '_' {
+		l.readChar()
+		if l.ch == '_' {
+			// 处理 __xxxxx
+			return l.readSpecialIdentifier(position)
+		}
+	}
+
+	// 普通标识符处理
+	for isLetter(l.ch) || isDigit(l.ch) {
+		l.readChar()
+	}
+
+	return l.input[position:l.position]
+}
+
+/*
+	读取一个特殊标识符
+*/
+func (l *Lexer) readSpecialIdentifier(startPosition int) string {
+	for isLetter(l.ch) || l.ch == '_' || isDigit(l.ch) {
+		l.readChar()
+	}
+	word := l.input[startPosition:l.position]
+
+	switch word {
+	case "__proto__":
+		return word
+	default:
+		return word
+	}	
 }
