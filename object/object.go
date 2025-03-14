@@ -27,10 +27,13 @@ const (
 	HASH_OBJ = "HASH"
 )
 
-
+/*
+	Object接口定义了所有finger对象的通用行为。
+	所有finger对象都必须实现这个接口。
+*/
 type Object interface {
-	Type() ObjectType
-	Inspect() string
+	Type() ObjectType // 返回对象的类型
+	Inspect() string // 返回对象的字符串表示
 }
 
 /*

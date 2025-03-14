@@ -1,5 +1,9 @@
 package evaluator
 
+/*
+	该包定义了finger语言将AST转换为对象的逻辑
+*/
+
 import (
 	"finger/ast"
 	"finger/object"
@@ -14,8 +18,8 @@ var (
 )
 
 /*
-	执行一个节点，并返回一个对象
-	@param node 要执行的节点
+	将一个AST节点转换为finger对象
+	@param node 目标节点
 	@param env 环境变量
 	@return 执行结果
 */
@@ -24,17 +28,20 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	// 语句
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
-	// 表达式
+	// 整数
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+	// 布尔值
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Value)
+	// 前缀表达式
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
 		return evalPrefixExpression(node.Operator, right)
+	// 中缀表达式
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -45,30 +52,38 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
+	// 块语句
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
+	// if表达式
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	// 返回语句
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
 		if isError(val) {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+	// 程序
 	case *ast.Program:
 		return evalProgram(node, env)
+	// 变量声明
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
 		if isError(val) {
 			return val
 		}
 		return val
+	// 标识符
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+	// 函数
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
 		return &object.Function{Parameters: params, Body: body, Env: env}
+	// 函数调用
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {
@@ -79,14 +94,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	// 字符串
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
+	// 数组
 	case *ast.ArrayLiteral:
 		elements := evalExpressions(node.Elements, env)
 		if len(elements) == 1 && isError(elements[0]) {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
+	// 索引表达式
 	case *ast.IndexExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -97,6 +115,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return index
 		}
 		return evalIndexExpression(left, index)
+	// 哈希表
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
 	}
@@ -116,24 +135,6 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	return newError("identifier not found: " + node.Value)
 }
 
-// /*
-// 	执行一个语句列表，并返回最后一个语句的值
-// 	@param stmts 语句列表
-// 	@return 最后一个语句的值
-// */
-// func evalStatements(stmts []ast.Statement, env *object.Environment) object.Object {
-// 	var result object.Object
-
-// 	for _, stmt := range stmts {
-// 		result = Eval(stmt, env)
-// 		// 如果返回值是返回值对象，则返回返回值的值
-// 		if returnValue, ok := result.(*object.ReturnValue); ok {
-// 			return returnValue.Value
-// 		}
-// 	}
-
-// 	return result
-// }
 
 /*
 	将go语言的布尔值转换为finger语言的布尔值

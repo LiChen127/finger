@@ -3,8 +3,8 @@ package token
 type TokenType string
 
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type    TokenType // 词法单元类型
+	Literal string    // 词法单元字面量
 }
 
 /* 词法单元类型 */

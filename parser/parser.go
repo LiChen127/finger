@@ -13,9 +13,12 @@ import (
 	"strconv"
 )
 
+/*
+	优先级常量
+*/
 const (
 	_ int = iota
-	LOWEST // 最低优先级
+	LOWSET // 最低优先级
 	EQUALS // ==
 	LESSGREATER // > or <
 	SUM // +
@@ -39,6 +42,9 @@ var precedences = map[token.TokenType]int {
 	token.LBRACKET: INDEX,
 }
 
+/*
+	语法分析器
+*/
 type Parser struct {
 	l *lexer.Lexer // 指向词法分析器示例的指针
 
@@ -46,8 +52,8 @@ type Parser struct {
 	peekToken token.Token // 类似词法分析中的readPosition, 指向当前正在解析的词法单元的下一个词法单元
 	errors []string // 错误信息, 是切片，每个错误语句都报错，而不是遇到一个错误就退出
 
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns map[token.TokenType]infixParseFn
+	prefixParseFns map[token.TokenType]prefixParseFn // 前缀解析函数 
+	infixParseFns map[token.TokenType]infixParseFn // 中缀解析函数
 }
 
 /*
@@ -63,10 +69,16 @@ type (
 	infixParseFn func(ast.Expression) ast.Expression
 )
 
+/*
+	*Parser 类型的一个方法，用于注册前缀解析函数
+*/
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
 }
 
+/*
+	*Parser 类型的一个方法，用于注册中缀解析函数
+*/
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
@@ -75,34 +87,56 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	创建一个新的语法分析器
 */
 func New(l *lexer.Lexer) *Parser {
+	// 初始化语法分析器
 	p := &Parser{
 		l: l,
 		errors: []string{},
+		prefixParseFns: make(map[token.TokenType]prefixParseFn),
+		infixParseFns: make(map[token.TokenType]infixParseFn),
 	}
-
+	
+	// 前移curToken和peekToken
 	p.nextToken()
 	p.nextToken()
 
-	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
-	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	/* 注册解析函数 */
+
+	// 标识符解析器
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	// 整数字面量解析器
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
-	// 前缀表达式解析器
+
+	/* 前缀表达式解析器 */
+
+	// 感叹号表达式解析器
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	// 负号表达式解析器
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
-	// 中缀表达式解析器
+
+	/* 中缀表达式解析器 */
+
+	// 加号表达式解析器
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
+	// 减号表达式解析器
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
+	// 除号表达式解析器
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
+	// 乘号表达式解析器
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
+	// 等号表达式解析器
 	p.registerInfix(token.EQ, p.parseInfixExpression)
+	// 不等号表达式解析器
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
+	// 小于号表达式解析器
 	p.registerInfix(token.LT, p.parseInfixExpression)
+	// 大于号表达式解析器
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	// 布尔字面量解析器
 	p.registerPrefix(token.TRUE, p.parseBoolean)
+	// 假布尔字面量解析器
 	p.registerPrefix(token.FALSE, p.parseBoolean)
-	// 分组解析器
+
+	/* 分组解析器 */
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	// if语句解析器
 	p.registerPrefix(token.IF, p.parseIfExpression)
@@ -231,7 +265,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	p.nextToken()
 
-	stmt.Value = p.parseExpression(LOWEST)
+	stmt.Value = p.parseExpression(LOWSET)
 
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -248,7 +282,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	p.nextToken()
 
-	stmt.ReturnValue = p.parseExpression(LOWEST)
+	stmt.ReturnValue = p.parseExpression(LOWSET)
 
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -263,7 +297,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 	
-	stmt.Expression = p.parseExpression(LOWEST)
+	stmt.Expression = p.parseExpression(LOWSET)
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -326,14 +360,17 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 /*
 	前缀表达式解析器
+	解析形如 -3 或 !true 的表达式
 */
 func (p *Parser) parsePrefixExpression() ast.Expression {
+	// 创建一个前缀表达式节点
 	expression := &ast.PrefixExpression{
 		Token: p.curToken,
 		Operator: p.curToken.Literal,
 	}
-
+	// 前移curToken
 	p.nextToken()
+	// 解析右边的表达式
 	expression.Right = p.parseExpression(PREFIX)
 
 	return expression
@@ -341,6 +378,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 /*
 	中缀表达式解析器
+	解析形如 3 + 4 或 3 * 4 的表达式
 */
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression := &ast.InfixExpression{
@@ -365,7 +403,7 @@ func (p *Parser) peekPrecedence() int {
 		return p
 	}
 	
-	return LOWEST
+	return LOWSET
 }
 
 /*
@@ -376,14 +414,18 @@ func (p *Parser) curPrecedence() int {
 		return p
 	}
 
-	return LOWEST
+	return LOWSET
 }
 
 /*
 	布尔字面量解析器
 */
 func (p *Parser) parseBoolean() ast.Expression {
-	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
+	if p.curTokenIs(token.TRUE) {
+		return &ast.Boolean{Token: p.curToken, Value: true}
+	}
+
+	return &ast.Boolean{Token: p.curToken, Value: false}
 }
 
 /*
@@ -392,8 +434,9 @@ func (p *Parser) parseBoolean() ast.Expression {
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 
-	exp := p.parseExpression(LOWEST)
-
+	// 解析括号内的表达式 最低优先级
+	exp := p.parseExpression(LOWSET)
+	// 判断下一个是不是期望的右括号
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
@@ -412,7 +455,7 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	}
 
 	p.nextToken()
-	expression.Condition = p.parseExpression(LOWEST)
+	expression.Condition = p.parseExpression(LOWSET)
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
@@ -538,12 +581,12 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	p.nextToken()
-	args = append(args, p.parseExpression(LOWEST))
+	args = append(args, p.parseExpression(LOWSET))
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
+		args = append(args, p.parseExpression(LOWSET))
 	}
 
 	if !p.expectPeek(token.RPAREN) {
@@ -575,12 +618,12 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	}
 
 	p.nextToken()
-	list = append(list, p.parseExpression(LOWEST))
+	list = append(list, p.parseExpression(LOWSET))
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
-		list = append(list, p.parseExpression(LOWEST))
+		list = append(list, p.parseExpression(LOWSET))
 	}
 
 	if !p.expectPeek(end) {
@@ -595,7 +638,7 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 
 	p.nextToken()
 
-	exp.Index = p.parseExpression(LOWEST)
+	exp.Index = p.parseExpression(LOWSET)
 
 	if !p.expectPeek(token.RBRACKET) {
 		return nil
@@ -610,14 +653,14 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 
 	for !p.peekTokenIs(token.RBRACE) {
 		p.nextToken()
-		key := p.parseExpression(LOWEST)
+		key := p.parseExpression(LOWSET)
 
 		if !p.expectPeek(token.COLON) {
 			return nil
 		}
 
 		p.nextToken()
-		value := p.parseExpression(LOWEST)
+		value := p.parseExpression(LOWSET)
 
 		hash.Pairs[key] = value
 
