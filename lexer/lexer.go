@@ -193,35 +193,74 @@ func (l *Lexer) NextToken() token.Token {
 			// 否则，返回%
 			tok = newToken(token.MODULO, l.ch)
 		}
-	case ',':
-		tok = newToken(token.COMMA, l.ch)
-	case ';':
-		tok = newToken(token.SEMICOLON, l.ch)
-	case '(':
-		tok = newToken(token.LPAREN, l.ch)
-	case ')':
-		tok = newToken(token.RPAREN, l.ch)
-	case '{':
-		tok = newToken(token.LBRACE, l.ch)
-	case '}':
-		tok = newToken(token.RBRACE, l.ch)
+	// 逻辑运算符
+	// && 
+	case '&':
+		if l.peekChar() == '&' {
+			// 处理 &&
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "&"
+			tok = token.Token{Type: token.AND, Literal: literal}
+		} else {
+			// 否则，返回&
+			tok = newToken(token.BIT_AND, l.ch)
+		}
+	// || 
+	case '|':
+		if l.peekChar() == '|' {
+			// 处理 ||
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "|"
+			tok = token.Token{Type: token.OR, Literal: literal}
+		} else {
+			// 否则，返回|
+			tok = newToken(token.BIT_OR, l.ch)
+		}
+	// 位运算符
+	// 处理 ^
+	case '^':
+		tok = newToken(token.BIT_XOR, l.ch)
+	// 处理 ~
+	case '~':
+		tok = newToken(token.BIT_NOT, l.ch)
+	// 处理 < | << | <=
 	case '<':
-		tok = newToken(token.LT, l.ch)
+		if l.peekChar() == '<' {	
+			// 处理 <<
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "<<"
+			tok = token.Token{Type: token.BIT_SHIFT_LEFT, Literal: literal}
+		} else if l.peekChar() == '=' {
+			// 处理 <=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.LTE, Literal: literal}
+		} else {
+			// 否则，返回<
+			tok = newToken(token.LT, l.ch)
+		}
+	// 处理 > | >> | >=
 	case '>':
-		tok = newToken(token.GT, l.ch)
-	case '"':
-		tok.Type = token.STRING
-		tok.Literal = l.readString()
-		return tok
-	case 0:
-		tok.Literal = ""
-		tok.Type = token.EOF
-	case '[':
-		tok = newToken(token.LBRACKET, l.ch)
-	case ']':
-		tok = newToken(token.RBRACKET, l.ch)
-	case ':':
-		tok = newToken(token.COLON, l.ch)
+		if l.peekChar() == '>' {
+			// 处理 >>
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + ">>"
+			tok = token.Token{Type: token.BIT_SHIFT_RIGHT, Literal: literal}
+		} else if l.peekChar() == '=' {
+			// 处理 >=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.GTE, Literal: literal}
+		} else {
+			// 否则，返回>
+			tok = newToken(token.GT, l.ch)
+		}
 	default:
 		// 只要不是可识别的字符，就检查是否是标识符
 		if isLetter(l.ch) {
