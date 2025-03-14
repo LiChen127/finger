@@ -151,6 +151,14 @@ const (
 	// 内置函数
 	PRINT = "print"
 	LEN   = "len"
+
+	// 注释
+	COMMENT     = "//"
+	MULTI_LINE  = "/*"
+	MULTI_LINE2 = "*/"
+	DOC_COMMENT = "/**"
+	DOC_LINE    = "*"
+	DOC_LINE2   = "*/"
 )
 
 /*
