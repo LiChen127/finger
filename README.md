@@ -25,4 +25,8 @@ Maybe like JavaScript
 
 ## Feature
 
-### Token Analyzer
+### Basic Data Type
+
+1. INT (integer) == golang's int64
+2. Boolean == golang's bool
+3. String == golang's string

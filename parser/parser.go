@@ -104,7 +104,7 @@ func New(l *lexer.Lexer) *Parser {
 	// 标识符解析器
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	// 整数字面量解析器
-	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.NUMBER, p.parseIntegerLiteral)
 
 	/* 前缀表达式解析器 */
 
