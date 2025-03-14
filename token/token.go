@@ -153,12 +153,13 @@ const (
 	LEN   = "len"
 
 	// 注释
-	COMMENT     = "//"
-	MULTI_LINE  = "/*"
-	MULTI_LINE2 = "*/"
-	DOC_COMMENT = "/**"
-	DOC_LINE    = "*"
-	DOC_LINE2   = "*/"
+	COMMENT = "//"
+	// @todo: 支持多行注释
+	// MULTI_LINE  = "/*"
+	// MULTI_LINE2 = "*/"
+	// DOC_COMMENT = "/**"
+	// DOC_LINE    = "*"
+	// DOC_LINE2   = "*/"
 )
 
 /*

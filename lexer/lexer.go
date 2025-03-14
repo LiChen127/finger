@@ -50,6 +50,16 @@ func (l *Lexer) peekChar() byte {
 }
 
 /*
+	窥视第二个字符之后的字符
+*/
+func (l *Lexer) peekNextChar() byte {
+	if l.readPosition + 1 >= len(l.input) {
+		return 0
+	}
+	return l.input[l.readPosition + 1]
+}
+
+/*
 	检查当前正在查看的字符，根据字符返回相应的词法单元。
 */
 func (l *Lexer) NextToken() token.Token {
@@ -60,30 +70,129 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.ch {
+	/* 运算符的处理 */
+	// = | == | ===
 	case '=':
 		if l.peekChar() == '=' {
-			// 如果下一个字符是=，则返回EQ == 
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.EQ, Literal: literal}
+			if l.peekNextChar() == '=' {
+				// 处理 严格相等 
+				ch := l.ch
+				l.readChar()
+				l.readChar()
+				literal := string(ch) + "=="
+				tok = token.Token{Type: token.EQ, Literal: literal}
+			} else {
+			  // 处理 == 
+				ch := l.ch
+				l.readChar()
+				literal := string(ch) + string(l.ch)
+				tok = token.Token{Type: token.EQ, Literal: literal}
+			}
 		} else {
-			// 否则，返回ASSIGN
+			// 处理 模糊相等
 			tok = newToken(token.ASSIGN, l.ch)
 		}
+	// ! | != | !==
 	case '!':
 		if l.peekChar() == '=' {
-			// 如果下一个字符是=，则返回NOT_EQ !=
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+			if l.peekNextChar() == '=' {
+				// 处理 !==
+				ch := l.ch
+				// 读取后面的两个字符
+				l.readChar()
+				l.readChar()
+				literal := string(ch) + "!=" // 即 !==
+				tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+			} else {
+				// 处理 != 
+				ch := l.ch
+				// 读取下一个字符
+				l.readChar()
+				literal := string(ch) + string(l.ch) // 即 !=
+				tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+			}
 		} else {
 			// 否则，返回BANG
 			tok = newToken(token.BANG, l.ch)
 		}
+	// 处理 + | += | ++
 	case '+':
-		tok = newToken(token.PLUS, l.ch)
+		if l.peekChar() == '=' {
+			// 处理 +=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.PLUS_EQ, Literal: literal}
+		} else if l.peekChar() == '+' {
+			// 处理 ++
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "++"
+			tok = token.Token{Type: token.INCREMENT, Literal: literal}
+		} else {
+			// 否则，返回+
+			tok = newToken(token.PLUS, l.ch)
+		}
+	// 处理 - | -= | --
+	case '-':
+		if l.peekChar() == '=' {
+			// 处理 -=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.MINUS_EQ, Literal: literal}
+		} else if l.peekChar() == '-' {
+			// 处理 --
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "--"
+			tok = token.Token{Type: token.DECREMENT, Literal: literal}
+		} else {
+			// 否则，返回-
+			tok = newToken(token.MINUS, l.ch)
+		}
+	// 处理 * | *=
+	case '*':
+		if l.peekChar() == '=' {
+			// 处理 *=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.ASTERISK_EQ, Literal: literal}
+		} else {
+			// 否则，返回*
+			tok = newToken(token.ASTERISK, l.ch)
+		}
+	// 处理 / | /= | //
+	case '/':
+		if l.peekChar() == '/' {
+			// 处理 //
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "//"
+			tok = token.Token{Type: token.COMMENT, Literal: literal}
+		} else if l.peekChar() == '=' {
+			// 处理 /=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.SLASH_EQ, Literal: literal}
+		} else {
+			// 否则，返回/
+			tok = newToken(token.SLASH, l.ch)
+		}
+	// 处理 % | %=
+	case '%':
+		if l.peekChar() == '=' {
+			// 处理 %=
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + "="
+			tok = token.Token{Type: token.MODULO_EQ, Literal: literal}
+		} else {
+			// 否则，返回%
+			tok = newToken(token.MODULO, l.ch)
+		}
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
 	case ';':
@@ -96,12 +205,6 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
-	case '-':
-		tok = newToken(token.MINUS, l.ch)
-	case '*':
-		tok = newToken(token.ASTERISK, l.ch)
-	case '/':
-		tok = newToken(token.SLASH, l.ch)
 	case '<':
 		tok = newToken(token.LT, l.ch)
 	case '>':
