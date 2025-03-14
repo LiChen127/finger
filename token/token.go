@@ -22,6 +22,7 @@ const (
 	ASTERISK_EQ = "*="
 	SLASH_EQ    = "/="
 	MODULO_EQ   = "%="
+	REST        = "..."
 
 	// 算术运算符
 	PLUS      = "+"
@@ -131,15 +132,25 @@ const (
 	NEW        = "new"
 
 	// 异步支持
-	ASYNC   = "async"
-	AWAIT   = "await"
-	PROMISE = "Promise"
-	THEN    = "then"
+	ASYNC       = "async"
+	AWAIT       = "await"
+	PROMISE     = "Promise"
+	THEN        = "then"
+	RESOLVE     = "resolve"
+	REJECT      = "reject"
+	ALL         = "all"
+	RACE        = "race"
+	ANY         = "any"
+	ALL_SETTLED = "allSettled"
+	// CATCH   = "catch"
 
 	// 模块系统
 	IMPORT = "import"
 	EXPORT = "export"
 	FROM   = "from"
+	AS     = "as"
+	// DEFAULT = "default" // 默认导出
+	EXPORT_AS = "*"
 
 	// 错误处理
 	TRY     = "try"
@@ -159,6 +170,27 @@ const (
 	// DOC_COMMENT = "/**"
 	// DOC_LINE    = "*"
 	// DOC_LINE2   = "*/"
+
+	// 生成器
+	YIELD     = "yield"
+	YIELD_ALL = "yield*"
+
+	// 对象字面量增强
+	COMPUTED_PROPERTY = "[]"
+
+	// 集合
+	SET_HAS    = "has"
+	SET_ADD    = "add"
+	SET_DELETE = "delete"
+	SET_CLEAR  = "clear"
+	MAP_GET    = "get"
+	MAP_SET    = "set"
+	MAP_HAS    = "has"
+	MAP_DELETE = "delete"
+
+	// 迭代器
+	OF       = "of"              // for...of 循环支持
+	ITERATOR = "Symbol.iterator" // 迭代器符号
 )
 
 /*
@@ -178,6 +210,10 @@ var keywords = map[string]TokenType{
 	// 变量声明
 	"let":   LET,
 	"const": CONST,
+
+	// 迭代器
+	"yield":  YIELD,
+	"yield*": YIELD_ALL,
 
 	// 函数声明
 	"fn":     FUNCTION,
@@ -212,16 +248,32 @@ var keywords = map[string]TokenType{
 	"create":     CREATE,
 	"in":         IN,
 	"instanceof": INSTANCEOF,
+	"new":        NEW,
+	"this":       THIS,
 
 	// 异步支持
-	"async":   ASYNC,
-	"await":   AWAIT,
-	"Promise": PROMISE,
-	"then":    THEN,
+	"async":      ASYNC,
+	"await":      AWAIT,
+	"Promise":    PROMISE,
+	"then":       THEN,
+	"resolve":    RESOLVE,
+	"reject":     REJECT,
+	"all":        ALL,
+	"race":       RACE,
+	"any":        ANY,
+	"allSettled": ALL_SETTLED,
 
 	// 内置函数
 	"print": PRINT,
 	"len":   LEN,
+
+	// 内置对象
+	"has":    SET_HAS,
+	"add":    SET_ADD,
+	"delete": SET_DELETE,
+	"clear":  SET_CLEAR,
+	"get":    MAP_GET,
+	"set":    MAP_SET,
 
 	// 基础值
 	"true":      TRUE,
@@ -230,13 +282,13 @@ var keywords = map[string]TokenType{
 	"undefined": UNDEFINED,
 
 	// 数据类型
-	"Boolean": BOOLEAN,
+	"boolean": BOOLEAN,
 	"number":  NUMBER,
-	"String":  STRING,
-	"Array":   ARRAY,
-	"Object":  OBJECT,
-	"Symbol":  SYMBOL,
-	"BigInt":  BIGINT,
+	"string":  STRING,
+	"array":   ARRAY,
+	"object":  OBJECT,
+	"symbol":  SYMBOL,
+	"bigint":  BIGINT,
 
 	// 函数式
 	"map":     MAPFn,
@@ -247,4 +299,7 @@ var keywords = map[string]TokenType{
 	"slice":   SLICE,
 	"split":   SPLIT,
 	"join":    JOIN,
+
+	// 新增
+	"of": OF,
 }

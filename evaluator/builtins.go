@@ -9,7 +9,7 @@ var builtins = map[string]*object.Builtin{
 	"len": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
-				return newError("wrong Number of arguments. got=%d, want=1", len(args))
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
 			}
 
 			switch arg := args[0].(type) {
@@ -26,7 +26,7 @@ var builtins = map[string]*object.Builtin{
 	"first": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
-				return newError("wrong Number of arguments. got=%d, want=1", len(args))
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
 			}
 			if args[0].Type() != object.ARRAY_OBJ {
 				return newError("argument to `first` must be ARRAY, got %s", args[0].Type())
@@ -41,7 +41,7 @@ var builtins = map[string]*object.Builtin{
 	"last": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
-				return newError("wrong Number of arguments. got=%d, want=1", len(args))
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
 			}
 			if args[0].Type() != object.ARRAY_OBJ {
 				return newError("argument to `last` must be ARRAY, got %s", args[0].Type())
@@ -57,7 +57,7 @@ var builtins = map[string]*object.Builtin{
 	"rest": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
-				return newError("wrong Number of arguments. got=%d, want=1", len(args))
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
 			}
 			if args[0].Type() != object.ARRAY_OBJ {
 				return newError("argument to `rest` must be ARRAY, got %s", args[0].Type())
@@ -75,7 +75,7 @@ var builtins = map[string]*object.Builtin{
 	"push": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 2 {
-				return newError("wrong Number of arguments. got=%d, want=2", len(args))
+				return newError("wrong number of arguments. got=%d, want=2", len(args))
 			}
 			if args[0].Type() != object.ARRAY_OBJ {
 				return newError("argument to `push` must be ARRAY, got %s", args[0].Type())
