@@ -74,30 +74,30 @@ const (
 	RBRACKET = "]"
 
 	// 函数式编程关键字
-	FUNCTION = "fn"
-	ARROW    = "->"
-	RETURN   = "return"
+	ARROW  = "->"
+	RETURN = "return"
 
 	// 变量声明
 	LET   = "let"
 	CONST = "const"
 
 	// 基础值
-	TRUE      = "true"
-	FALSE     = "false"
+	TRUE  = "true"
+	FALSE = "false"
+
+	// 基本数据类型
+	STRING    = "string"
+	NUMBER    = "number"
+	BOOLEAN   = "boolean"
 	NULL      = "null"
 	UNDEFINED = "undefined"
+	SYMBOL    = "symbol"
+	BIGINT    = "bigint"
 
-	// 字面量
-	STRING  = "string"
-	NUMBER  = "number"
-	BOOLEAN = "boolean"
-	ARRAY   = "array"
-	OBJECT  = "object"
-	REGEX   = "regex"
-	DATE    = "date"
-	MAP     = "Map"
-	SET     = "Set"
+	// 引用数据类型
+	ARRAY    = "array"
+	OBJECT   = "object"
+	FUNCTION = "function"
 
 	// 控制流支持
 	FOR      = "for"
@@ -122,10 +122,13 @@ const (
 	JOIN    = "join"
 
 	// 原型系统
-	PROTO  = "__proto__"
-	CREATE = "create"
-	TYPEOF = "typeof"
-	IN     = "in"
+	PROTO      = "__proto__"
+	CREATE     = "create"
+	TYPEOF     = "typeof"
+	IN         = "in"
+	INSTANCEOF = "instanceof"
+	THIS       = "this"
+	NEW        = "new"
 
 	// 异步支持
 	ASYNC   = "async"
@@ -204,10 +207,11 @@ var keywords = map[string]TokenType{
 	"from":   FROM,
 
 	// 原型系统
-	"typeof":    TYPEOF,
-	"__proto__": PROTO,
-	"create":    CREATE,
-	"in":        IN,
+	"typeof":     TYPEOF,
+	"__proto__":  PROTO,
+	"create":     CREATE,
+	"in":         IN,
+	"instanceof": INSTANCEOF,
 
 	// 异步支持
 	"async":   ASYNC,
@@ -224,15 +228,15 @@ var keywords = map[string]TokenType{
 	"false":     FALSE,
 	"null":      NULL,
 	"undefined": UNDEFINED,
-	"boolean":   BOOLEAN,
-	"number":    NUMBER,
-	"string":    STRING,
-	"array":     ARRAY,
-	"object":    OBJECT,
-	"regex":     REGEX,
-	"date":      DATE,
-	"Map":       MAP,
-	"Set":       SET,
+
+	// 数据类型
+	"Boolean": BOOLEAN,
+	"number":  NUMBER,
+	"String":  STRING,
+	"Array":   ARRAY,
+	"Object":  OBJECT,
+	"Symbol":  SYMBOL,
+	"BigInt":  BIGINT,
 
 	// 函数式
 	"map":     MAPFn,

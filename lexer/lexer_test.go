@@ -136,7 +136,7 @@ func TestOperators(t *testing.T) {
 
 func TestModernFeatures(t *testing.T) {
 	input := `
-	async fn getData() {
+	async function getData() {
 		let result = await fetch();
 		let value = result?.data ?? "default";
 		let rest = obj;
@@ -148,7 +148,7 @@ func TestModernFeatures(t *testing.T) {
 		expectedLiteral string
 	}{
 		{token.ASYNC, "async"},
-		{token.FUNCTION, "fn"},
+		{token.FUNCTION, "function"},
 		{token.IDENT, "getData"},
 		{token.LPAREN, "("},
 		{token.RPAREN, ")"},
